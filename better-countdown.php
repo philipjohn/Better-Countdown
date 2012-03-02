@@ -57,15 +57,16 @@ add_action('wp_enqueue_scripts', 'bc_enqueue_scripts');
  * Return the finished HTML for the countdown
  */
 function bc_countdown(){
-	$html = '<script type="text/javascript">
-(function ($) {
+	$html = '<div id="defaultCountdown"></div>';
+
+	$html .= '<script type="text/javascript">
+$(document).ready(function () {
 	var austDay = new Date();
 	austDay = new Date(austDay.getFullYear() + 1, 1 - 1, 26);
 	$(\'#defaultCountdown\').countdown({until: austDay});
 	$(\'#year\').text(austDay.getFullYear());
 });
 </script>';
-	$html .= '<div id="defaultCountdown"></div>';
 	return $html;
 }
 
