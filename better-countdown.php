@@ -39,8 +39,8 @@ if (!defined('BC_PLUGIN_DIR')){
  */
 function bc_init(){
 	// register the countdown plugin JS
-	wp_register_script('jquery-countdown', BC_PLUGIN_URL.'js/jquery.countdown.min.js', 'jquery-1-5-1');
-	wp_register_script('jquery-1-5-1', 'https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js');
+	wp_register_script('jquery-lwtCountdown-1.0', BC_PLUGIN_URL.'js/jquery.lwtCountdown-1.0.js', 'jquery');
+	wp_register_script('jquery-lwtCountdown-misc', BC_PLUGIN_URL.'js/misc.js', 'jquery-lwtCountdown-1.0');
 }
 add_action('init', 'bc_init');
 
@@ -48,34 +48,97 @@ add_action('init', 'bc_init');
  * Enqueue scripts
  */
 function bc_enqueue_scripts(){
-	wp_enqueue_script('jquery-1-5-1');
-	wp_enqueue_script('jquery-countdown');
+	// Enqueue jQuery and countdown
+	wp_enqueue_script('jquery');
+	wp_enqueue_script('jquery-lwtCountdown-1.0');
+	wp_enqueue_script('jquery-lwtCountdown-misc');
+	
+	// Enqueue styles for countdown
+	$myStyleUrl = plugins_url('css/main.css', __FILE__); // Respects SSL, main.css is relative to the current file
+	wp_register_style('jquery-countdown', $myStyleUrl);
+	wp_enqueue_style('jquery-countdown');
 }
 add_action('wp_enqueue_scripts', 'bc_enqueue_scripts');
 
 /**
  * Return the finished HTML for the countdown
  */
-function bc_countdown(){
-	$html = '<div id="defaultCountdown"></div>';
+function bc_countdown_r($args){
+	// Define the array of defaults
+	$defaults = array(
+		'date' => '2012-06-05 12:05:42'
+	);
+	$args = wp_parse_args( $args, $defaults ); // merge defaults with passed values
+	extract( $args, EXTR_SKIP ); // give each arg it's own variable
 
-	$html .= '<script type="text/javascript">
-$(document).ready(function () {
-	var austDay = new Date();
-	austDay = new Date(austDay.getFullYear() + 1, 1 - 1, 26);
-	$(\'#defaultCountdown\').countdown({until: austDay});
-	$(\'#year\').text(austDay.getFullYear());
-});
-</script>';
+	// convert time to timestamp, then generate nice time
+	$date = date_parse(date('Y-m-d H:i:s', strtotime($date)));
+	
+	$html = '<!-- Countdown dashboard start -->
+		<div id="countdown_dashboard">
+			<div class="dash weeks_dash">
+				<span class="dash_title">weeks</span>
+				<div class="digit">0</div>
+				<div class="digit">0</div>
+			</div>
+
+			<div class="dash days_dash">
+				<span class="dash_title">days</span>
+				<div class="digit">0</div>
+				<div class="digit">0</div>
+			</div>
+
+			<div class="dash hours_dash">
+				<span class="dash_title">hours</span>
+				<div class="digit">0</div>
+				<div class="digit">0</div>
+			</div>
+
+			<div class="dash minutes_dash">
+				<span class="dash_title">minutes</span>
+				<div class="digit">0</div>
+				<div class="digit">0</div>
+			</div>
+
+			<div class="dash seconds_dash">
+				<span class="dash_title">seconds</span>
+				<div class="digit">0</div>
+				<div class="digit">0</div>
+			</div>
+
+		</div>
+		<!-- Countdown dashboard end -->';
+	$html .= '<script language="javascript" type="text/javascript">
+			try{
+				jQuery.noConflict();
+			} catch(e){};
+			jquery(document).ready(function() {
+				$(\'#countdown_dashboard\').countDown({
+					targetDate: {
+						\'day\': 		'.$date['day'].',
+						\'month\': 	'.$date['month'].',
+						\'year\': 	'.$date['year'].',
+						\'hour\': 	'.$date['hour'].',
+						\'min\': 		'.$date['minute'].',
+						\'sec\': 		'.$date['second'].'
+					}
+				});
+			});
+		</script>';
 	return $html;
 }
 
 /**
- * Register the shortcode
+ * Register the shortcode; also acts as a template tag
  */
-function bc_countdown_shortcode(){
-	echo bc_countdown();
+function bc_countdown($atts){
+	// extract the attributes, setting defaults if necessary
+	extract( shortcode_atts( array(
+		'date' => '2012-05-03'
+	), $atts ) );
+	
+	echo bc_countdown_r($atts);
 }
-add_shortcode('countdown', 'bc_countdown_shortcode');
+add_shortcode('countdown', 'bc_countdown');
 
 ?>
