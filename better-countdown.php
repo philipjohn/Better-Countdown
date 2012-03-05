@@ -112,8 +112,7 @@ function bc_countdown_r($args){
 			try{
 				jQuery.noConflict();
 			} catch(e){};
-			jquery(document).ready(function() {
-				$(\'#countdown_dashboard\').countDown({
+				jQuery(\'#countdown_dashboard\').countDown({
 					targetDate: {
 						\'day\': 		'.$date['day'].',
 						\'month\': 	'.$date['month'].',
@@ -123,7 +122,6 @@ function bc_countdown_r($args){
 						\'sec\': 		'.$date['second'].'
 					}
 				});
-			});
 		</script>';
 	return $html;
 }
